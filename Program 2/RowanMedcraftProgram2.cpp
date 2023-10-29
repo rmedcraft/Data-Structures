@@ -12,7 +12,7 @@ using namespace std;
 struct IndexEntry
 {
    int acctID;   // (key) Account identifier
-   long recNum;  // Record number
+   long recNum;  // Record number (why is this a long????)
    string fName;
    string lName;
    double bal;
@@ -20,7 +20,7 @@ struct IndexEntry
    IndexEntry * right;
 };
 
-void insert(IndexEntry *, int, int, string, string, double);
+void treeInsert(IndexEntry *&, int, int, string, string, double);
 IndexEntry* treeSearch(IndexEntry *, int);
 void printNode(IndexEntry *);
 
@@ -29,7 +29,7 @@ void print(priorityQueue, int);
 int main()
 {
 	// part 1 starts here
-	IndexEntry * root = new IndexEntry();
+	IndexEntry * root = NULL;
 
 	ifstream file;
 	file.open("accounts.dat");
@@ -37,17 +37,20 @@ int main()
 		cout << "File could not be found" << endl;
 		return 1;
 	}
+
 	// gets rid of the first line in the .dat file that we dont want to read
 	string useless;
 	getline(file, useless);
 	
 	// reads the data from the file into the BST
-	int index, id;
+	int index;
+	long id;
 	string first, last;
 	double balance;
 	while(file){
 		file >> index >> id >> first >> last >> balance;
-		insert(root, id, index, first, last, balance);
+		cout << index << " " << id << " " << first << " " << last << " " << balance << endl;
+		treeInsert(root, id, index, first, last, balance);
 	}
 
 	// prompts the user to enter an ID to search for
@@ -59,14 +62,16 @@ int main()
 	if(!foundNode){
 		cout << "Matched record number is -1" << endl;
 	} else {
-		cout << "Matched record number is " << foundNode->recNum << endl;
+		cout << "Matched record number is " << foundNode->recNum  << endl;
 	}
+	cout << endl;
 	cout << "Corresponding account record from the database file: " << endl;
 	if(!foundNode){
 		cout << "Account ID not in Data" << endl;
 	} else {
 		printNode(foundNode);
 	}
+	cout << "\nStart of Part 2: " << endl;
 
 	// part 2 starts here
 	priorityQueue myqueue;
@@ -125,7 +130,7 @@ int main()
 	return 0;
 }
 
-void insert(IndexEntry * head, int id, int index, string fName, string lName, double bal){
+void treeInsert(IndexEntry *& head, int id, int index, string fName, string lName, double bal){
     if(!head){
         head = new IndexEntry();
 		head->acctID = id;
@@ -136,17 +141,16 @@ void insert(IndexEntry * head, int id, int index, string fName, string lName, do
 		head->left = NULL;
 		head->right = NULL;
     } else if(id < head->acctID){
-        insert(head->left, id, index, fName, lName, bal);
+        treeInsert(head->left, id, index, fName, lName, bal);
     } else {
-        insert(head->right, id, index, fName, lName, bal);
+        treeInsert(head->right, id, index, fName, lName, bal);
     }
 }
 
 IndexEntry* treeSearch(IndexEntry * head, int key){
 	if(!head || key == head->acctID){
 		return head;
-	}
-	if(key < head->acctID){
+	} else if(key < head->acctID){
 		return treeSearch(head->left, key);
 	}
 	return treeSearch(head->right, key);
@@ -154,8 +158,7 @@ IndexEntry* treeSearch(IndexEntry * head, int key){
 
 void printNode(IndexEntry * node){
 	printf("%-12s%-12s%-12s%-12s%-12s\n", "Record#", "AccountID", "FirstName", "LastName", "Balance");
-	printf("%-12d%-12d%-12s%-12s%-12f", node->recNum, node->acctID, node->fName, node->lName, node->bal);
-
+	printf("%-12ld%-12d%-12s%-12s%-12.2f\n", node->recNum, node->acctID, node->fName, node->lName, node->bal);
 }
 
 void print(priorityQueue queue, int num){
